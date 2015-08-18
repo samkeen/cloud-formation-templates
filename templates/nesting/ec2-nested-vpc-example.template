@@ -2,15 +2,23 @@
   "AWSTemplateFormatVersion": "2010-09-09",
   "Description": "Testing Nested Templates",
   "Resources": {
+    "VpcStack": {
+      "Type" : "AWS::CloudFormation::Stack",
+      "Properties" : {
+        "TemplateURL" : { "Ref": "VpcTemplateS3Path" },
+        "TimeoutInMinutes" : "60"
+      }
+    },
     "Ec2Instance": {
       "Type": "AWS::EC2::Instance",
       "Properties": {
         "KeyName": {"Ref" : "KeyName"},
         "NetworkInterfaces": [
           {
+            "GroupSet"                 : [{"Fn::GetAtt" : [ "VpcStack", "Outputs.SimpleVpcSecurityGroup" ]}],
             "AssociatePublicIpAddress": "true",
             "DeviceIndex": "0",
-            "SubnetId": "subnet-398c5960"
+            "SubnetId": { "Fn::GetAtt" : [ "VpcStack", "Outputs.PublicSubnet" ] }
           }
         ],
         "ImageId": {
@@ -32,7 +40,13 @@
         },
         "InstanceType": {
           "Ref": "InstanceType"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "ec2-nested-vp-example"
+          }
+        ]
       }
     }
   },
@@ -233,6 +247,11 @@
       "Type": "AWS::EC2::KeyPair::KeyName",
       "ConstraintDescription": "must be the name of an existing EC2 KeyPair."
     },
+    "VpcTemplateS3Path": {
+      "Description": "S3 URL to the Nested VPC template location",
+      "Type": "String",
+      "Default": "https://s3-us-west-2.amazonaws.com/<BUCKET-NAME>/<PATH-TO-TEMPLATE>"
+    },
     "InstanceType": {
       "Description": "WebServer EC2 instance type",
       "Type": "String",
@@ -286,15 +305,24 @@
         "cg1.4xlarge"
       ],
       "ConstraintDescription": "must be a valid EC2 instance type."
+    }
+  },
+  "Outputs": {
+    "InstanceId" : {
+      "Description" : "InstanceId of the newly created EC2 instance",
+      "Value" : { "Ref" : "Ec2Instance" }
     },
-    "SSHLocation": {
-      "Description": "The IP address range that can be used to SSH to the EC2 instances",
-      "Type": "String",
-      "MinLength": "9",
-      "MaxLength": "18",
-      "Default": "0.0.0.0/0",
-      "AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
-      "ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+    "InstancePublicIP" : {
+      "Description" : "Public IP address of the newly created EC2 instance",
+      "Value" : { "Fn::GetAtt" : [ "Ec2Instance", "PublicIp" ] }
+    },
+    "VcpStackRef": {
+      "Description": "This is the Nested Template containing the VPC definition",
+      "Value": { "Ref" : "VpcStack"}
+    },
+    "OutputFromNestedStack" : {
+      "Description": "This is the created Public Subnet of the Nested Template containing the VPC definition",
+      "Value" : { "Fn::GetAtt" : [ "VpcStack", "Outputs.PublicSubnet" ] }
     }
   }
 }

@@ -1,6 +1,6 @@
 {
   "AWSTemplateFormatVersion": "2010-09-09",
-  "Description": "Simple VPC for CF template",
+  "Description": "Simple VPC for CloudFormation template nesting example",
   "Resources": {
     "SimpleVPC": {
       "Type": "AWS::EC2::VPC",
@@ -13,6 +13,10 @@
           {
             "Key": "Name",
             "Value": "SimpleVpcExample"
+          },
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
           }
         ]
       }
@@ -23,12 +27,25 @@
         "CidrBlock": "10.0.1.0/24",
         "VpcId": {
           "Ref": "SimpleVPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
+        ]
       }
     },
     "InternetGateway": {
       "Type": "AWS::EC2::InternetGateway",
-      "Properties": {}
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
+        ]
+      }
     },
     "VpcDhcpOptions": {
       "Type": "AWS::EC2::DHCPOptions",
@@ -36,6 +53,12 @@
         "DomainName": "us-west-2.compute.internal",
         "DomainNameServers": [
           "AmazonProvidedDNS"
+        ],
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
         ]
       }
     },
@@ -44,7 +67,13 @@
       "Properties": {
         "VpcId": {
           "Ref": "SimpleVPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
+        ]
       }
     },
     "InternetRouteTable": {
@@ -52,7 +81,13 @@
       "Properties": {
         "VpcId": {
           "Ref": "SimpleVPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
+        ]
       }
     },
     "SimpleVpcSecurityGroup": {
@@ -61,7 +96,13 @@
         "GroupDescription": "The Simple VPC test security group",
         "VpcId": {
           "Ref": "SimpleVPC"
-        }
+        },
+        "Tags": [
+          {
+            "Key": "purpose",
+            "Value": "simple-vpc-example"
+          }
+        ]
       }
     },
     "VpcAclEgressRule0": {
@@ -158,5 +199,9 @@
         "CidrIp": "0.0.0.0/0"
       }
     }
+  },
+  "Outputs": {
+    "PublicSubnet": {"Value": { "Ref" : "PublicSubnet"}},
+    "SimpleVpcSecurityGroup": {"Value": { "Ref" : "SimpleVpcSecurityGroup"}}
   }
 }
